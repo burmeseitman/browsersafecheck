@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="my">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="BrowserSafeCheck - သင့် Browser ၏ လုံခြုံရေး အခြေအနေကို စစ်ဆေးပါ။ Check your browser security status with deep insights."
+    />
+    <title>BrowserSafeCheck — Browser လုံခြုံရေး စစ်ဆေးခြင်း</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Myanmar:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <div class="shield-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path
+                d="M9 12l2 2 4-4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1>BrowserSafeCheck</h1>
+            <p class="tagline">သင့် Browser ၏ လုံခြုံရေး အခြေအနေကို စစ်ဆေးပါ</p>
+          </div>
+        </div>
+        <button id="scanBtn" class="scan-btn" onclick="startScan()">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="20"
+            height="20"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <span>စစ်ဆေးမည်</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+      <!-- Overall Score -->
+      <section id="overallScore" class="overall-score-section hidden">
+        <div class="score-card glass-card">
+          <div class="score-ring-container">
+            <svg class="score-ring" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" class="score-ring-bg" />
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                class="score-ring-fill"
+                id="scoreRingFill"
+              />
+            </svg>
+            <div class="score-value" id="scoreValue">0%</div>
+          </div>
+          <div class="score-info">
+            <h2 id="verdictText">စစ်ဆေးနေပါသည်...</h2>
+            <p id="verdictDesc" class="verdict-desc"></p>
+            <div class="score-breakdown" id="scoreBreakdown"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories Grid -->
+      <section id="categoriesGrid" class="categories-grid hidden">
+        <!-- Category 1: General Info -->
+        <div class="category-card glass-card" id="cat1">
+          <div class="category-header">
+            <div class="category-icon cat1-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </div>
+            <div>
+              <h3>အထွေထွေ အချက်အလက်</h3>
+              <span class="category-subtitle">General Info</span>
+            </div>
+            <div class="category-badge" id="cat1Badge">—</div>
+          </div>
+          <div class="category-items" id="cat1Items">
+            <div class="loading-placeholder">
+              <div class="pulse-line"></div>
+              <div class="pulse-line short"></div>
+              <div class="pulse-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 2: Security & Privacy -->
+        <div class="category-card glass-card" id="cat2">
+          <div class="category-header">
+            <div class="category-icon cat2-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+            </div>
+            <div>
+              <h3>လုံခြုံရေးနှင့် ကိုယ်ရေးကိုယ်တာ</h3>
+              <span class="category-subtitle">Security & Privacy</span>
+            </div>
+            <div class="category-badge" id="cat2Badge">—</div>
+          </div>
+          <div class="category-items" id="cat2Items">
+            <div class="loading-placeholder">
+              <div class="pulse-line"></div>
+              <div class="pulse-line short"></div>
+              <div class="pulse-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 3: Hardware & Performance -->
+        <div class="category-card glass-card" id="cat3">
+          <div class="category-header">
+            <div class="category-icon cat3-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+                <rect x="9" y="9" width="6" height="6" />
+                <line x1="9" y1="1" x2="9" y2="4" />
+                <line x1="15" y1="1" x2="15" y2="4" />
+                <line x1="9" y1="20" x2="9" y2="23" />
+                <line x1="15" y1="20" x2="15" y2="23" />
+                <line x1="20" y1="9" x2="23" y2="9" />
+                <line x1="20" y1="14" x2="23" y2="14" />
+                <line x1="1" y1="9" x2="4" y2="9" />
+                <line x1="1" y1="14" x2="4" y2="14" />
+              </svg>
+            </div>
+            <div>
+              <h3>Hardware နှင့် စွမ်းဆောင်ရည်</h3>
+              <span class="category-subtitle">Hardware & Performance</span>
+            </div>
+            <div class="category-badge" id="cat3Badge">—</div>
+          </div>
+          <div class="category-items" id="cat3Items">
+            <div class="loading-placeholder">
+              <div class="pulse-line"></div>
+              <div class="pulse-line short"></div>
+              <div class="pulse-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 4: Network & Location -->
+        <div class="category-card glass-card" id="cat4">
+          <div class="category-header">
+            <div class="category-icon cat4-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path
+                  d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3>ကွန်ရက်နှင့် တည်နေရာ</h3>
+              <span class="category-subtitle">Network & Location</span>
+            </div>
+            <div class="category-badge" id="cat4Badge">—</div>
+          </div>
+          <div class="category-items" id="cat4Items">
+            <div class="loading-placeholder">
+              <div class="pulse-line"></div>
+              <div class="pulse-line short"></div>
+              <div class="pulse-line"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Suggestions Section -->
+      <section id="suggestionsSection" class="suggestions-section hidden">
+        <div class="glass-card suggestions-card">
+          <div class="suggestions-header">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              width="24"
+              height="24"
+            >
+              <path
+                d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
+            <h3>လုံခြုံရေး အကြံပြုချက်များ</h3>
+          </div>
+          <div id="suggestionsList" class="suggestions-list"></div>
+        </div>
+      </section>
+
+      <!-- Splash / Welcome -->
+      <section id="welcomeSection" class="welcome-section">
+        <div class="welcome-content">
+          <div class="welcome-shield">
+            <svg viewBox="0 0 80 80" fill="none">
+              <defs>
+                <linearGradient
+                  id="shieldGrad"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" style="stop-color: #6366f1" />
+                  <stop offset="100%" style="stop-color: #06b6d4" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M40 6L10 18v16c0 20 13 33 30 40 17-7 30-20 30-40V18L40 6z"
+                stroke="url(#shieldGrad)"
+                stroke-width="2.5"
+                fill="none"
+              />
+              <path
+                d="M28 40l8 8 16-16"
+                stroke="url(#shieldGrad)"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+              />
+            </svg>
+          </div>
+          <h2>သင့် Browser ကို စစ်ဆေးရန် အဆင်သင့်ဖြစ်ပါပြီ</h2>
+          <p>
+            အပေါ်ရှိ <strong>"စစ်ဆေးမည်"</strong> ခလုတ်ကို နှိပ်ပြီး သင့်
+            browser ၏ လုံခြုံရေး အခြေအနေကို စစ်ဆေးပါ။
+          </p>
+          <div class="features-preview">
+            <div class="feature-item">
+              <span class="feature-num">၁</span>
+              <span>Browser အချက်အလက်</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-num">၂</span>
+              <span>လုံခြုံရေး စစ်ဆေးခြင်း</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-num">၃</span>
+              <span>Hardware စွမ်းဆောင်ရည်</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-num">၄</span>
+              <span>ကွန်ရက် အချက်အလက်</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>BrowserSafeCheck &copy; 2026 — MIT License</p>
+      <p class="footer-note">
+        သင့် ဒေတာအားလုံးကို သင့် browser ထဲတွင်သာ စစ်ဆေးပြီး server သို့
+        မပို့ပါ။
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,472 @@
+/* BrowserSafeCheck — Detection Engine (Part 1: Categories 1 & 2) */
+
+// ========== UTILITIES ==========
+function createCheckItem(label, value, status) {
+    const icons = { safe: '✓', warning: '⚠', danger: '✕', info: 'ℹ' };
+    return `<div class="check-item">
+        <div class="check-icon ${status}">${icons[status]}</div>
+        <div class="check-content">
+            <div class="check-label">${label}</div>
+            <div class="check-value">${value}</div>
+        </div>
+    </div>`;
+}
+
+function setBadge(id, status, text) {
+    const el = document.getElementById(id);
+    el.className = 'category-badge ' + status;
+    el.textContent = text;
+}
+
+function getCategoryStatus(checks) {
+    const d = checks.filter(c => c.status === 'danger').length;
+    const w = checks.filter(c => c.status === 'warning').length;
+    if (d > 0) return 'danger';
+    if (w > 1) return 'warning';
+    return 'safe';
+}
+
+const badgeLabels = { safe: 'လုံခြုံ', warning: 'သတိ', danger: 'အန္တရာယ်' };
+
+// ========== GLOBAL STATE ==========
+let allSuggestions = [];
+let categoryScores = { cat1: 100, cat2: 100, cat3: 100, cat4: 100 };
+
+// ========== MAIN SCAN ==========
+async function startScan() {
+    const btn = document.getElementById('scanBtn');
+    btn.classList.add('scanning');
+    btn.querySelector('span').textContent = 'စစ်ဆေးနေပါသည်';
+
+    document.getElementById('welcomeSection').classList.add('hidden');
+    document.getElementById('overallScore').classList.remove('hidden');
+    document.getElementById('categoriesGrid').classList.remove('hidden');
+
+    allSuggestions = [];
+
+    // Run all categories
+    checkCategory1();
+    checkCategory2();
+    checkCategory3();
+    await checkCategory4();
+
+    // Show suggestions
+    renderSuggestions();
+    renderOverallScore();
+
+    btn.classList.remove('scanning');
+    btn.querySelector('span').textContent = 'ပြန်စစ်ဆေးမည်';
+}
+
+// ========== CATEGORY 1: General Info ==========
+function checkCategory1() {
+    const checks = [];
+    let html = '';
+
+    // Browser Name & Version
+    const browserInfo = detectBrowser();
+    checks.push({ status: 'info' });
+    html += createCheckItem('Browser အမည်', browserInfo.name, 'info');
+    html += createCheckItem('Browser Version', browserInfo.version, 'info');
+
+    // OS
+    const osInfo = detectOS();
+    html += createCheckItem('Operating System', osInfo, 'info');
+
+    // Language
+    const lang = navigator.language || navigator.userLanguage || 'မသိ';
+    html += createCheckItem('ဘာသာစကား (Language)', lang, 'info');
+
+    // Screen Resolution
+    const w = screen.width, h = screen.height;
+    const dpr = window.devicePixelRatio || 1;
+    html += createCheckItem('Screen Resolution', `${w} × ${h} (${dpr}x pixel ratio)`, 'info');
+
+    // Platform
+    const platform = navigator.userAgentData?.platform || navigator.platform || 'မသိ';
+    html += createCheckItem('Platform', platform, 'info');
+
+    // Touch Support
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    html += createCheckItem('Touch Support', hasTouch ? 'ရှိပါသည်' : 'မရှိပါ', 'info');
+
+    document.getElementById('cat1Items').innerHTML = html;
+    setBadge('cat1Badge', 'info', 'INFO');
+    categoryScores.cat1 = 100; // info only, always full
+}
+
+function detectBrowser() {
+    const ua = navigator.userAgent;
+    let name = 'Unknown Browser', version = '';
+
+    if (navigator.userAgentData && navigator.userAgentData.brands) {
+        const brands = navigator.userAgentData.brands;
+        const real = brands.find(b => !b.brand.includes('Not') && b.brand !== 'Chromium');
+        if (real) { name = real.brand; version = real.version; }
+        else {
+            const chromium = brands.find(b => b.brand === 'Chromium');
+            if (chromium) { name = 'Chromium'; version = chromium.version; }
+        }
+    } else {
+        if (ua.includes('Firefox/')) { name = 'Firefox'; version = ua.match(/Firefox\/([\d.]+)/)?.[1] || ''; }
+        else if (ua.includes('Edg/')) { name = 'Microsoft Edge'; version = ua.match(/Edg\/([\d.]+)/)?.[1] || ''; }
+        else if (ua.includes('Chrome/') && !ua.includes('Edg/')) { name = 'Google Chrome'; version = ua.match(/Chrome\/([\d.]+)/)?.[1] || ''; }
+        else if (ua.includes('Safari/') && !ua.includes('Chrome/')) { name = 'Safari'; version = ua.match(/Version\/([\d.]+)/)?.[1] || ''; }
+    }
+    return { name, version };
+}
+
+function detectOS() {
+    if (navigator.userAgentData?.platform) return navigator.userAgentData.platform;
+    const ua = navigator.userAgent;
+    if (ua.includes('Windows NT 10')) return 'Windows 10/11';
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('Mac OS X')) { const v = ua.match(/Mac OS X ([\d_]+)/)?.[1]?.replace(/_/g, '.'); return v ? `macOS ${v}` : 'macOS'; }
+    if (ua.includes('Linux')) return 'Linux';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
+    return 'Unknown OS';
+}
+
+// ========== CATEGORY 2: Security & Privacy ==========
+function checkCategory2() {
+    const checks = [];
+    let html = '';
+
+    // HTTPS
+    const isHTTPS = location.protocol === 'https:';
+    const httpsStatus = isHTTPS ? 'safe' : 'danger';
+    checks.push({ status: httpsStatus });
+    html += createCheckItem('HTTPS ချိတ်ဆက်မှု', isHTTPS ? 'HTTPS ဖြင့် ချိတ်ဆက်ထားပါသည် ✓' : 'HTTPS မဟုတ်ပါ — လုံခြုံမှု မရှိပါ', httpsStatus);
+    if (!isHTTPS) allSuggestions.push({ critical: true, text: '<strong>HTTPS</strong> ဖြင့် ချိတ်ဆက်ထားခြင်း မရှိပါ။ HTTPS ရှိသော website များကိုသာ အသုံးပြုပါ။ Browser address bar တွင် 🔒 အိုင်ကွန် ရှိ/မရှိ စစ်ဆေးပါ။' });
+
+    // Secure Context
+    const isSecure = window.isSecureContext;
+    const secureStatus = isSecure ? 'safe' : 'danger';
+    checks.push({ status: secureStatus });
+    html += createCheckItem('Secure Context', isSecure ? 'Secure Context ဖြစ်ပါသည် ✓' : 'Secure Context မဟုတ်ပါ', secureStatus);
+    if (!isSecure) allSuggestions.push({ critical: true, text: '<strong>Secure Context</strong> မဟုတ်ပါ။ ဤ website သည် လုံခြုံသော ပတ်ဝန်းကျင်တွင် မရှိပါ။ HTTPS ရှိသော site ကို အသုံးပြုပါ။' });
+
+    // Cookies
+    const cookiesEnabled = navigator.cookieEnabled;
+    const cookieStatus = cookiesEnabled ? 'safe' : 'warning';
+    checks.push({ status: cookieStatus });
+    html += createCheckItem('Cookies', cookiesEnabled ? 'ဖွင့်ထားပါသည် (Enabled)' : 'ပိတ်ထားပါသည် (Disabled)', cookieStatus);
+    if (!cookiesEnabled) allSuggestions.push({ critical: false, text: '<strong>Cookies</strong> ပိတ်ထားပါသည်။ အချို့ website များ ကောင်းစွာ အလုပ်မလုပ်နိုင်ပါ။ လိုအပ်ပါက browser settings မှ cookies ကို ဖွင့်ပေးပါ။' });
+
+    // Do Not Track
+    const dnt = navigator.doNotTrack;
+    let dntValue, dntStatus;
+    if (dnt === '1') { dntValue = 'ဖွင့်ထားပါသည် (Enabled) ✓'; dntStatus = 'safe'; }
+    else if (dnt === '0') { dntValue = 'ပိတ်ထားပါသည် (Disabled)'; dntStatus = 'warning'; }
+    else { dntValue = 'သတ်မှတ်ထားခြင်း မရှိပါ (Not Set)'; dntStatus = 'warning'; }
+    checks.push({ status: dntStatus });
+    html += createCheckItem('Do Not Track (DNT)', dntValue, dntStatus);
+    if (dntStatus !== 'safe') allSuggestions.push({ critical: false, text: '<strong>Do Not Track</strong> ဖွင့်ထားခြင်း မရှိပါ။ Browser settings ထဲတွင် "Do Not Track" ကို enable လုပ်ခြင်းဖြင့် website များက သင့်ကို track လုပ်ခြင်းကို တားဆီးနိုင်ပါသည်။' });
+
+    // JavaScript
+    html += createCheckItem('JavaScript', 'ဖွင့်ထားပါသည် (Enabled)', 'info');
+    checks.push({ status: 'info' });
+
+    // Third-party Cookies test (simplified)
+    const tpcStatus = 'warning';
+    html += createCheckItem('Third-party Cookies', 'Browser ပေါ်မူတည်၍ ကွဲပြားနိုင်ပါသည်', tpcStatus);
+    checks.push({ status: tpcStatus });
+    allSuggestions.push({ critical: false, text: '<strong>Third-party Cookies</strong> ကို block လုပ်ရန် အကြံပြုပါသည်။ Browser settings > Privacy > "Block third-party cookies" ကို ဖွင့်ပါ။' });
+
+    // Ad Blocker Detection
+    const adBlockStatus = detectAdBlocker();
+    checks.push({ status: adBlockStatus ? 'safe' : 'warning' });
+    html += createCheckItem('Ad Blocker', adBlockStatus ? 'Ad Blocker တွေ့ရှိပါသည် ✓' : 'Ad Blocker မတွေ့ရှိပါ', adBlockStatus ? 'safe' : 'warning');
+    if (!adBlockStatus) allSuggestions.push({ critical: false, text: '<strong>Ad Blocker</strong> ထည့်သွင်းထားခြင်း မရှိပါ။ uBlock Origin သို့မဟုတ် အခြား ad blocker extension ထည့်သွင်းခြင်းဖြင့် malicious ads များမှ ကာကွယ်နိုင်ပါသည်။' });
+
+    document.getElementById('cat2Items').innerHTML = html;
+    const catStatus = getCategoryStatus(checks);
+    setBadge('cat2Badge', catStatus, badgeLabels[catStatus]);
+
+    const total = checks.filter(c => c.status !== 'info').length;
+    const safe = checks.filter(c => c.status === 'safe').length;
+    categoryScores.cat2 = total > 0 ? Math.round((safe / total) * 100) : 100;
+}
+
+function detectAdBlocker() {
+    const testAd = document.createElement('div');
+    testAd.innerHTML = '&nbsp;';
+    testAd.className = 'adsbox ad-placement ad-banner';
+    testAd.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;';
+    document.body.appendChild(testAd);
+    const blocked = testAd.offsetHeight === 0 || testAd.clientHeight === 0;
+    document.body.removeChild(testAd);
+    return blocked;
+}
+
+// ========== CATEGORY 3: Hardware & Performance ==========
+function checkCategory3() {
+    const checks = [];
+    let html = '';
+
+    // CPU Cores
+    const cores = navigator.hardwareConcurrency;
+    if (cores) {
+        const coreStatus = cores >= 4 ? 'safe' : cores >= 2 ? 'warning' : 'danger';
+        checks.push({ status: coreStatus });
+        html += createCheckItem('CPU Cores', `${cores} cores`, coreStatus);
+        if (cores < 4) allSuggestions.push({ critical: false, text: `CPU cores ${cores} ခု ရှိပါသည်။ ခေတ်မီ browser များ အတွက် အနည်းဆုံး 4 cores ရှိသင့်ပါသည်။` });
+    } else {
+        html += createCheckItem('CPU Cores', 'စစ်ဆေး၍ မရပါ', 'info');
+        checks.push({ status: 'info' });
+    }
+
+    // RAM
+    const ram = navigator.deviceMemory;
+    if (ram) {
+        const ramStatus = ram >= 8 ? 'safe' : ram >= 4 ? 'warning' : 'danger';
+        checks.push({ status: ramStatus });
+        html += createCheckItem('Device Memory (RAM)', `${ram} GB`, ramStatus);
+        if (ram < 4) allSuggestions.push({ critical: false, text: `RAM ${ram} GB ရှိပါသည်။ Browser tab များစွာ ဖွင့်ခြင်းကို ရှောင်ပါ။ အနည်းဆုံး 4 GB ရှိသင့်ပါသည်။` });
+    } else {
+        html += createCheckItem('Device Memory (RAM)', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
+        checks.push({ status: 'info' });
+    }
+
+    // Battery
+    if (navigator.getBattery) {
+        navigator.getBattery().then(battery => {
+            const level = Math.round(battery.level * 100);
+            const charging = battery.charging;
+            const batStatus = charging || level > 20 ? 'safe' : level > 10 ? 'warning' : 'danger';
+            const batText = `${level}%${charging ? ' (အားသွင်းနေပါသည်)' : ''}`;
+            const batItem = createCheckItem('Battery', batText, batStatus);
+            // Append to existing items
+            document.getElementById('cat3Items').innerHTML += batItem;
+            if (level <= 20 && !charging) allSuggestions.push({ critical: false, text: `Battery ${level}% သာ ကျန်ပါသည်။ အားသွင်းပါ။ Battery နည်းသောအခါ browser performance ကျဆင်းနိုင်ပါသည်။` });
+        }).catch(() => {});
+    } else {
+        html += createCheckItem('Battery', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
+        checks.push({ status: 'info' });
+    }
+
+    // JS Heap (Chrome only)
+    if (performance.memory) {
+        const used = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
+        const total = (performance.memory.jsHeapSizeLimit / 1048576).toFixed(0);
+        const pct = (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit * 100).toFixed(1);
+        const memStatus = pct < 50 ? 'safe' : pct < 80 ? 'warning' : 'danger';
+        checks.push({ status: memStatus });
+        html += createCheckItem('JS Memory (Heap)', `${used} MB / ${total} MB (${pct}%)`, memStatus);
+        if (pct >= 80) allSuggestions.push({ critical: true, text: `JS Memory ${pct}% အသုံးပြုနေပါသည်။ Browser tab အချို့ကို ပိတ်ပါ။ Memory leak ရှိနိုင်ပါသည်။` });
+    } else {
+        html += createCheckItem('JS Memory (Heap)', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
+        checks.push({ status: 'info' });
+    }
+
+    // WebGPU
+    const hasGPU = !!navigator.gpu;
+    html += createCheckItem('WebGPU Support', hasGPU ? 'ရရှိနိုင်ပါသည် ✓' : 'မရရှိနိုင်ပါ', hasGPU ? 'safe' : 'info');
+    checks.push({ status: hasGPU ? 'safe' : 'info' });
+
+    // Connection type (also in cat4 but performance-related here)
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn && conn.effectiveType) {
+        const eff = conn.effectiveType;
+        const connStatus = eff === '4g' ? 'safe' : eff === '3g' ? 'warning' : 'danger';
+        checks.push({ status: connStatus });
+        html += createCheckItem('Effective Connection', eff.toUpperCase(), connStatus);
+        if (eff !== '4g') allSuggestions.push({ critical: false, text: `Internet connection speed ${eff} ဖြစ်ပါသည်။ ပိုမြန်သော WiFi သို့ ပြောင်းပါ။` });
+    }
+
+    document.getElementById('cat3Items').innerHTML = html;
+    const catStatus = getCategoryStatus(checks);
+    setBadge('cat3Badge', catStatus, badgeLabels[catStatus] || 'INFO');
+
+    const total = checks.filter(c => c.status !== 'info').length;
+    const safe = checks.filter(c => c.status === 'safe').length;
+    categoryScores.cat3 = total > 0 ? Math.round((safe / total) * 100) : 100;
+}
+
+// ========== CATEGORY 4: Network & Location ==========
+async function checkCategory4() {
+    const checks = [];
+    let html = '';
+
+    // Online Status
+    const online = navigator.onLine;
+    const onlineStatus = online ? 'safe' : 'danger';
+    checks.push({ status: onlineStatus });
+    html += createCheckItem('Internet ချိတ်ဆက်မှု', online ? 'Online ဖြစ်ပါသည် ✓' : 'Offline ဖြစ်နေပါသည်', onlineStatus);
+
+    // Timezone
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'မသိ';
+    html += createCheckItem('Timezone', tz, 'info');
+    checks.push({ status: 'info' });
+
+    // Connection Type
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn) {
+        const type = conn.type || 'Unknown';
+        const downlink = conn.downlink ? `${conn.downlink} Mbps` : '';
+        html += createCheckItem('Connection Type', `${type}${downlink ? ' — ' + downlink : ''}`, 'info');
+        checks.push({ status: 'info' });
+    }
+
+    // Public IP
+    try {
+        const resp = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(5000) });
+        const data = await resp.json();
+        html += createCheckItem('Public IP Address', data.ip, 'info');
+        checks.push({ status: 'info' });
+        allSuggestions.push({ critical: false, text: `သင့် Public IP address (<strong>${data.ip}</strong>) ကို website များက မြင်နိုင်ပါသည်။ <strong>VPN</strong> အသုံးပြု၍ IP ကို ဖုံးကွယ်နိုင်ပါသည်။` });
+    } catch {
+        html += createCheckItem('Public IP Address', 'စစ်ဆေး၍ မရပါ (Network Error)', 'warning');
+        checks.push({ status: 'warning' });
+    }
+
+    // WebRTC Leak Check
+    const webrtcLeak = await checkWebRTCLeak();
+    if (webrtcLeak.leaked) {
+        checks.push({ status: 'danger' });
+        html += createCheckItem('WebRTC IP Leak', `Local IP ပေါ်နေပါသည်: ${webrtcLeak.ip}`, 'danger');
+        allSuggestions.push({ critical: true, text: `<strong>WebRTC</strong> မှ သင့် local IP address (${webrtcLeak.ip}) ပေါ်နေပါသည်။ VPN အသုံးပြုနေသော်လည်း IP ပေါ်နိုင်ပါသည်။ Browser extension "WebRTC Leak Shield" ထည့်သွင်းပါ သို့မဟုတ် browser settings တွင် WebRTC ကို disable လုပ်ပါ။` });
+    } else {
+        checks.push({ status: 'safe' });
+        html += createCheckItem('WebRTC IP Leak', 'WebRTC leak မတွေ့ရှိပါ ✓', 'safe');
+    }
+
+    // Geolocation Permission
+    if (navigator.permissions) {
+        try {
+            const geoStatus = await navigator.permissions.query({ name: 'geolocation' });
+            const geoVal = geoStatus.state;
+            let geoDisplay, geoSt;
+            if (geoVal === 'granted') { geoDisplay = 'ခွင့်ပြုထားပါသည် (Granted)'; geoSt = 'warning'; }
+            else if (geoVal === 'denied') { geoDisplay = 'ပိတ်ထားပါသည် (Denied)'; geoSt = 'safe'; }
+            else { geoDisplay = 'မေးမည် (Prompt)'; geoSt = 'safe'; }
+            checks.push({ status: geoSt });
+            html += createCheckItem('Geolocation Permission', geoDisplay, geoSt);
+            if (geoVal === 'granted') allSuggestions.push({ critical: false, text: '<strong>Geolocation</strong> permission ခွင့်ပြုထားပါသည်။ မလိုအပ်ပါက browser settings > Site Settings > Location တွင် ပိတ်ထားပါ။' });
+        } catch {
+            html += createCheckItem('Geolocation Permission', 'စစ်ဆေး၍ မရပါ', 'info');
+            checks.push({ status: 'info' });
+        }
+    }
+
+    document.getElementById('cat4Items').innerHTML = html;
+    const catStatus = getCategoryStatus(checks);
+    setBadge('cat4Badge', catStatus, badgeLabels[catStatus] || 'INFO');
+
+    const total = checks.filter(c => c.status !== 'info').length;
+    const safe = checks.filter(c => c.status === 'safe').length;
+    categoryScores.cat4 = total > 0 ? Math.round((safe / total) * 100) : 100;
+}
+
+function checkWebRTCLeak() {
+    return new Promise((resolve) => {
+        try {
+            const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            let found = false;
+            pc.createDataChannel('');
+            pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(() => resolve({ leaked: false }));
+            pc.onicecandidate = (e) => {
+                if (!e.candidate) { if (!found) resolve({ leaked: false }); pc.close(); return; }
+                const parts = e.candidate.candidate.split(' ');
+                const ip = parts[4];
+                if (ip && !ip.includes(':') && !ip.startsWith('0.') && ip !== '0.0.0.0') {
+                    // Private IP ranges  
+                    if (ip.match(/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/)) {
+                        found = true;
+                        resolve({ leaked: true, ip });
+                    }
+                }
+            };
+            setTimeout(() => { if (!found) resolve({ leaked: false }); pc.close(); }, 3000);
+        } catch { resolve({ leaked: false }); }
+    });
+}
+
+// ========== SUGGESTIONS ==========
+function renderSuggestions() {
+    const section = document.getElementById('suggestionsSection');
+    const list = document.getElementById('suggestionsList');
+
+    if (allSuggestions.length === 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    // Sort critical first
+    allSuggestions.sort((a, b) => (b.critical ? 1 : 0) - (a.critical ? 1 : 0));
+
+    list.innerHTML = allSuggestions.map((s, i) =>
+        `<div class="suggestion-item ${s.critical ? 'critical' : ''}" style="animation-delay:${i * 0.05}s">
+            <span class="suggestion-icon">${s.critical ? '🔴' : '⚠️'}</span>
+            <div class="suggestion-text">${s.text}</div>
+        </div>`
+    ).join('');
+}
+
+// ========== OVERALL SCORE ==========
+function renderOverallScore() {
+    const scores = Object.values(categoryScores);
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+
+    // Animate score ring
+    const fill = document.getElementById('scoreRingFill');
+    const circumference = 326.73;
+    const offset = circumference - (avg / 100) * circumference;
+    fill.style.strokeDashoffset = offset;
+
+    // Update color
+    let color;
+    if (avg >= 80) color = '#10b981';
+    else if (avg >= 50) color = '#f59e0b';
+    else color = '#f43f5e';
+    fill.style.stroke = color;
+
+    // Animate number
+    const valueEl = document.getElementById('scoreValue');
+    animateNumber(valueEl, 0, avg, 1200);
+
+    // Verdict
+    const verdict = document.getElementById('verdictText');
+    const desc = document.getElementById('verdictDesc');
+    if (avg >= 80) {
+        verdict.textContent = '✅ လုံခြုံပါသည်';
+        verdict.style.color = '#34d399';
+        desc.textContent = 'သင့် browser သည် လုံခြုံရေး အခြေအနေ ကောင်းမွန်ပါသည်။';
+    } else if (avg >= 50) {
+        verdict.textContent = '⚠️ သတိထားသင့်ပါသည်';
+        verdict.style.color = '#fbbf24';
+        desc.textContent = 'အချို့ လုံခြုံရေး ပြဿနာများ တွေ့ရှိပါသည်။ အောက်ပါ အကြံပြုချက်များကို ဖတ်ရှုပါ။';
+    } else {
+        verdict.textContent = '🔴 လုံခြုံမှု အားနည်းပါသည်';
+        verdict.style.color = '#fb7185';
+        desc.textContent = 'အရေးကြီးသော လုံခြုံရေး ပြဿနာများ တွေ့ရှိပါသည်။ ချက်ချင်း ဆောင်ရွက်ရန် လိုအပ်ပါသည်။';
+    }
+
+    // Category breakdown tags
+    const breakdown = document.getElementById('scoreBreakdown');
+    const catNames = {
+        cat1: 'အထွေထွေ',
+        cat2: 'လုံခြုံရေး',
+        cat3: 'Hardware',
+        cat4: 'ကွန်ရက်'
+    };
+    breakdown.innerHTML = Object.entries(categoryScores).map(([key, score]) => {
+        const st = score >= 80 ? 'safe' : score >= 50 ? 'warning' : 'danger';
+        return `<span class="score-tag ${st}">${catNames[key]} ${score}%</span>`;
+    }).join('');
+}
+
+function animateNumber(el, from, to, duration) {
+    const start = performance.now();
+    function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(from + (to - from) * eased);
+        el.textContent = current + '%';
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
