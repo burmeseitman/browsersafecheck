@@ -4,22 +4,25 @@
 
 A single-page browser security insights tool that performs deep analysis of your browser's security posture and generates a comprehensive report in **Burmese (Myanmar)** language.
 
+[**🌐 View Live Demo**](https://browsersafecheck.vercel.app/) | [**💻 GitHub Repo**](https://github.com/burmeseitman/browsersafecheck)
+
 ![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
 
 ## 🎬 Demo
 
-### Welcome Screen
+### Welcome Screen (Premium UI)
 
 ![BrowserSafeCheck Welcome Screen](screenshot.png)
 
-### Results Report (Localized)
+### Results Report (100% Burmese Localized)
 
 ![BrowserSafeCheck Results Report](results.png)
 
-### Live Demo
+### Video Walkthrough
 
 ![BrowserSafeCheck in Action](demo.webp)
 
