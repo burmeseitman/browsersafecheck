@@ -9,6 +9,18 @@ A single-page browser security insights tool that performs deep analysis of your
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
 
+## 🎬 Demo
+
+### Welcome Screen
+
+![BrowserSafeCheck Welcome Screen](screenshot.png)
+
+### Live Demo
+
+![BrowserSafeCheck in Action](demo.webp)
+
+*The demo shows the complete security scan workflow: clicking the scan button, all 4 categories being analyzed, fingerprinting score calculation, vulnerability check, and actionable suggestions in Burmese.*
+
 ## ✨ Features
 
 ### 📋 Category 1: အထွေထွေ အချက်အလက် (General Info)
