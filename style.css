@@ -100,6 +100,36 @@ body {
   justify-content: space-between;
   gap: 1rem;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.github-link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-glass-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+.github-link svg {
+  transition: transform 0.3s;
+}
+.github-link:hover svg {
+  transform: scale(1.1);
+}
 .logo {
   display: flex;
   align-items: center;
