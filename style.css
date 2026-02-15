@@ -168,7 +168,8 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.7rem 1.5rem;
+  padding: 0 1.5rem;
+  height: 44px;
   background: var(--gradient-primary);
   border: none;
   border-radius: var(--radius-md);
