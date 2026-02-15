@@ -28,6 +28,11 @@ A single-page browser security insights tool that performs deep analysis of your
 - Operating system identification
 - Screen resolution & pixel ratio
 - Language and platform details
+- Touch support detection
+- **Browser Engine** — Rendering engine (Blink, Gecko, WebKit)
+- **Browser Vendor** — Browser manufacturer
+- **Color Depth** — Screen color capability (bits)
+- **Installed Fonts Count** — Estimated system fonts (privacy indicator)
 
 ### 🔒 Category 2: လုံခြုံရေးနှင့် ကိုယ်ရေးကိုယ်တာ (Security & Privacy)
 - HTTPS connection check

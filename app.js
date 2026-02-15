@@ -45,7 +45,7 @@ async function startScan() {
     allSuggestions = [];
 
     // Run all categories
-    checkCategory1();
+    await checkCategory1();
     await checkCategory2();
     checkCategory3();
     await checkCategory4();
@@ -59,7 +59,7 @@ async function startScan() {
 }
 
 // ========== CATEGORY 1: General Info ==========
-function checkCategory1() {
+async function checkCategory1() {
     const checks = [];
     let html = '';
 
@@ -90,9 +90,84 @@ function checkCategory1() {
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     html += createCheckItem('Touch Support', hasTouch ? 'ရှိပါသည်' : 'မရှိပါ', 'info');
 
+    // Browser Engine
+    const engine = detectBrowserEngine();
+    html += createCheckItem('Browser Engine', engine, 'info');
+
+    // Browser Vendor
+    const vendor = navigator.vendor || 'Unknown';
+    html += createCheckItem('Browser Vendor', vendor, 'info');
+
+    // Color Depth
+    const colorDepth = screen.colorDepth || screen.pixelDepth || 'Unknown';
+    html += createCheckItem('Color Depth', `${colorDepth}-bit`, 'info');
+
+    // Installed Fonts Count (privacy indicator)
+    const fontsCount = await detectInstalledFontsCount();
+    html += createCheckItem('Installed Fonts Count', fontsCount, 'info');
+
     document.getElementById('cat1Items').innerHTML = html;
     setBadge('cat1Badge', 'info', 'INFO');
     categoryScores.cat1 = 100; // info only, always full
+}
+
+function detectBrowserEngine() {
+    const ua = navigator.userAgent;
+    
+    // Check for specific engines
+    if (ua.includes('Gecko/') && ua.includes('Firefox/')) return 'Gecko';
+    if (ua.includes('AppleWebKit/')) {
+        if (ua.includes('Chrome/') || ua.includes('Edg/')) return 'Blink';
+        if (ua.includes('Safari/')) return 'WebKit';
+        return 'WebKit/Blink';
+    }
+    if (ua.includes('Trident/')) return 'Trident';
+    if (ua.includes('Presto/')) return 'Presto';
+    
+    return 'Unknown';
+}
+
+async function detectInstalledFontsCount() {
+    // Use a sample of common fonts to estimate
+    const testFonts = [
+        'Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New',
+        'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS',
+        'Trebuchet MS', 'Impact', 'Lucida Sans', 'Tahoma', 'Century Gothic',
+        'Monaco', 'Consolas', 'Courier', 'Lucida Console', 'Andale Mono',
+        'MS Sans Serif', 'MS Serif', 'Calibri', 'Cambria', 'Candara'
+    ];
+    
+    const baseFonts = ['monospace', 'sans-serif', 'serif'];
+    const testString = 'mmmmmmmmmmlli';
+    const testSize = '72px';
+    
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    // Get baseline widths
+    const baseWidths = {};
+    baseFonts.forEach(baseFont => {
+        context.font = `${testSize} ${baseFont}`;
+        baseWidths[baseFont] = context.measureText(testString).width;
+    });
+    
+    // Count detected fonts
+    let detectedCount = 0;
+    testFonts.forEach(font => {
+        let detected = false;
+        baseFonts.forEach(baseFont => {
+            context.font = `${testSize} '${font}', ${baseFont}`;
+            const width = context.measureText(testString).width;
+            if (width !== baseWidths[baseFont]) {
+                detected = true;
+            }
+        });
+        if (detected) detectedCount++;
+    });
+    
+    // Estimate total (sample is ~25 fonts)
+    const estimatedTotal = Math.round((detectedCount / testFonts.length) * 200);
+    return `~${estimatedTotal} fonts (${detectedCount}/${testFonts.length} detected)`;
 }
 
 function detectBrowser() {
