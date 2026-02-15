@@ -114,15 +114,18 @@ Click **"စစ်ဆေးမည်"** (Scan) to start the security check.
 
 This project is optimized for **Vercel** with a `vercel.json` and zero-config static hosting.
 
-1.  **Via Vercel CLI:**
-    ```bash
-    npm i -g vercel
-    vercel
-    ```
-2.  **Via GitHub:**
-    -   Push this repository to GitHub.
-    -   Connect the repository to Vercel.
-    -   Vercel will automatically detect the static files and deploy.
+1. **Via Vercel CLI:**
+
+   ```bash
+   npm i -g vercel
+   vercel
+   ```
+
+2. **Via GitHub:**
+
+   - Push this repository to GitHub.
+   - Connect the repository to Vercel.
+   - Vercel will automatically detect the static files and deploy.
 
 ## 🔒 Privacy
 
