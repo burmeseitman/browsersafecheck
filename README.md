@@ -15,6 +15,10 @@ A single-page browser security insights tool that performs deep analysis of your
 
 ![BrowserSafeCheck Welcome Screen](screenshot.png)
 
+### Results Report (Localized)
+
+![BrowserSafeCheck Results Report](results.png)
+
 ### Live Demo
 
 ![BrowserSafeCheck in Action](demo.webp)
