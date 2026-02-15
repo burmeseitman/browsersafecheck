@@ -46,7 +46,7 @@ async function startScan() {
 
     // Run all categories
     checkCategory1();
-    checkCategory2();
+    await checkCategory2();
     checkCategory3();
     await checkCategory4();
 
@@ -129,7 +129,7 @@ function detectOS() {
 }
 
 // ========== CATEGORY 2: Security & Privacy ==========
-function checkCategory2() {
+async function checkCategory2() {
     const checks = [];
     let html = '';
 
@@ -199,6 +199,54 @@ function checkCategory2() {
     html += createCheckItem('Browser Version လုံခြုံရေး', vulnCheck.message, vulnStatus);
     if (!vulnCheck.safe) {
         allSuggestions.push({ critical: true, text: `<strong>${browserInfo.name} ${browserInfo.version}</strong> တွင် လုံခြုံရေး ပြဿနာများ ရှိပါသည်။ ${vulnCheck.suggestion}` });
+    }
+
+    // Camera/Microphone Permission Check
+    if (navigator.permissions) {
+        try {
+            const cameraStatus = await navigator.permissions.query({ name: 'camera' });
+            const micStatus = await navigator.permissions.query({ name: 'microphone' });
+            
+            let mediaPermStatus, mediaPermDisplay;
+            if (cameraStatus.state === 'granted' || micStatus.state === 'granted') {
+                mediaPermStatus = 'warning';
+                mediaPermDisplay = 'ခွင့်ပြုထားပါသည် (Granted)';
+                allSuggestions.push({ critical: false, text: '<strong>Camera/Microphone</strong> permission ခွင့်ပြုထားပါသည်။ မလိုအပ်သော website များအတွက် browser settings > Site Settings > Camera/Microphone တွင် ပိတ်ထားပါ။' });
+            } else if (cameraStatus.state === 'denied' && micStatus.state === 'denied') {
+                mediaPermStatus = 'safe';
+                mediaPermDisplay = 'ပိတ်ထားပါသည် (Denied) ✓';
+            } else {
+                mediaPermStatus = 'safe';
+                mediaPermDisplay = 'မေးမည် (Prompt) ✓';
+            }
+            
+            checks.push({ status: mediaPermStatus });
+            html += createCheckItem('Camera/Microphone Permission', mediaPermDisplay, mediaPermStatus);
+        } catch {
+            html += createCheckItem('Camera/Microphone Permission', 'စစ်ဆေး၍ မရပါ', 'info');
+            checks.push({ status: 'info' });
+        }
+    }
+
+    // Notification Permission Check
+    if ('Notification' in window) {
+        const notifPerm = Notification.permission;
+        let notifStatus, notifDisplay;
+        
+        if (notifPerm === 'granted') {
+            notifStatus = 'warning';
+            notifDisplay = 'ခွင့်ပြုထားပါသည် (Granted)';
+            allSuggestions.push({ critical: false, text: '<strong>Notification</strong> permission ခွင့်ပြုထားပါသည်။ spam notifications များ ရရှိနိုင်ပါသည်။ Browser settings > Site Settings > Notifications တွင် မလိုအပ်သော site များကို ပိတ်ပါ။' });
+        } else if (notifPerm === 'denied') {
+            notifStatus = 'safe';
+            notifDisplay = 'ပိတ်ထားပါသည် (Denied) ✓';
+        } else {
+            notifStatus = 'safe';
+            notifDisplay = 'မေးမည် (Default) ✓';
+        }
+        
+        checks.push({ status: notifStatus });
+        html += createCheckItem('Notification Permission', notifDisplay, notifStatus);
     }
 
     document.getElementById('cat2Items').innerHTML = html;

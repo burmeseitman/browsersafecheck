@@ -38,6 +38,8 @@ A single-page browser security insights tool that performs deep analysis of your
 - Third-party cookie awareness
 - **Browser Fingerprinting Score** — Measures browser uniqueness/trackability (0-100)
 - **Vulnerability Database Check** — Verifies browser version against known CVEs
+- **Camera/Microphone Permission** — Checks media device access permissions
+- **Notification Permission** — Checks notification access status
 
 ### ⚡ Category 3: Hardware နှင့် စွမ်းဆောင်ရည် (Hardware & Performance)
 - CPU core count
