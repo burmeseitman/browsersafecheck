@@ -67,11 +67,11 @@ async function checkCategory1() {
     const browserInfo = detectBrowser();
     checks.push({ status: 'info' });
     html += createCheckItem('Browser အမည်', browserInfo.name, 'info');
-    html += createCheckItem('Browser Version', browserInfo.version, 'info');
+    html += createCheckItem('Browser ဗားရှင်း', browserInfo.version, 'info');
 
     // OS
     const osInfo = detectOS();
-    html += createCheckItem('Operating System', osInfo, 'info');
+    html += createCheckItem('စက်စနစ် (Operating System)', osInfo, 'info');
 
     // Language
     const lang = navigator.language || navigator.userLanguage || 'မသိ';
@@ -80,31 +80,31 @@ async function checkCategory1() {
     // Screen Resolution
     const w = screen.width, h = screen.height;
     const dpr = window.devicePixelRatio || 1;
-    html += createCheckItem('Screen Resolution', `${w} × ${h} (${dpr}x pixel ratio)`, 'info');
+    html += createCheckItem('မျက်နှာပြင် အတိုင်းအတာ', `${w} × ${h} (${dpr}x pixel ratio)`, 'info');
 
     // Platform
     const platform = navigator.userAgentData?.platform || navigator.platform || 'မသိ';
-    html += createCheckItem('Platform', platform, 'info');
+    html += createCheckItem('ပလက်ဖောင်း (Platform)', platform, 'info');
 
     // Touch Support
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    html += createCheckItem('Touch Support', hasTouch ? 'ရှိပါသည်' : 'မရှိပါ', 'info');
+    html += createCheckItem('Touch အသုံးပြုနိုင်မှု', hasTouch ? 'ရှိသည်' : 'မရှိပါ', 'info');
 
     // Browser Engine
     const engine = detectBrowserEngine();
-    html += createCheckItem('Browser Engine', engine, 'info');
+    html += createCheckItem('Browser အင်ဂျင် (Engine)', engine, 'info');
 
     // Browser Vendor
     const vendor = navigator.vendor || 'Unknown';
-    html += createCheckItem('Browser Vendor', vendor, 'info');
+    html += createCheckItem('Browser ထုတ်လုပ်သူ (Vendor)', vendor, 'info');
 
     // Color Depth
     const colorDepth = screen.colorDepth || screen.pixelDepth || 'Unknown';
-    html += createCheckItem('Color Depth', `${colorDepth}-bit`, 'info');
+    html += createCheckItem('အရောင် ပြတ်သားမှု (Color)', `${colorDepth}-bit`, 'info');
 
     // Installed Fonts Count (privacy indicator)
     const fontsCount = await detectInstalledFontsCount();
-    html += createCheckItem('Installed Fonts Count', fontsCount, 'info');
+    html += createCheckItem('ဖောင့် အရေအတွက် (Fonts)', fontsCount, 'info');
 
     document.getElementById('cat1Items').innerHTML = html;
     setBadge('cat1Badge', 'info', 'INFO');
@@ -167,7 +167,7 @@ async function detectInstalledFontsCount() {
     
     // Estimate total (sample is ~25 fonts)
     const estimatedTotal = Math.round((detectedCount / testFonts.length) * 200);
-    return `~${estimatedTotal} fonts (${detectedCount}/${testFonts.length} detected)`;
+    return `~${estimatedTotal} ခု (${detectedCount}/${testFonts.length} တွေ့ရှိ)`;
 }
 
 function detectBrowser() {
@@ -212,21 +212,21 @@ async function checkCategory2() {
     const isHTTPS = location.protocol === 'https:';
     const httpsStatus = isHTTPS ? 'safe' : 'danger';
     checks.push({ status: httpsStatus });
-    html += createCheckItem('HTTPS ချိတ်ဆက်မှု', isHTTPS ? 'HTTPS ဖြင့် ချိတ်ဆက်ထားပါသည် ✓' : 'HTTPS မဟုတ်ပါ — လုံခြုံမှု မရှိပါ', httpsStatus);
+    html += createCheckItem('HTTPS ချိတ်ဆက်မှု', isHTTPS ? 'HTTPS ဖြင့် ချိတ်ဆက်ထားသည် ✓' : 'HTTPS မဟုတ်ပါ — လုံခြုံမှု မရှိပါ', httpsStatus);
     if (!isHTTPS) allSuggestions.push({ critical: true, text: '<strong>HTTPS</strong> ဖြင့် ချိတ်ဆက်ထားခြင်း မရှိပါ။ HTTPS ရှိသော website များကိုသာ အသုံးပြုပါ။ Browser address bar တွင် 🔒 အိုင်ကွန် ရှိ/မရှိ စစ်ဆေးပါ။' });
 
     // Secure Context
     const isSecure = window.isSecureContext;
     const secureStatus = isSecure ? 'safe' : 'danger';
     checks.push({ status: secureStatus });
-    html += createCheckItem('Secure Context', isSecure ? 'Secure Context ဖြစ်ပါသည် ✓' : 'Secure Context မဟုတ်ပါ', secureStatus);
+    html += createCheckItem('လုံခြုံသော ပတ်ဝန်းကျင်', isSecure ? 'Secure Context ဖြစ်သည် ✓' : 'Secure Context မဟုတ်ပါ', secureStatus);
     if (!isSecure) allSuggestions.push({ critical: true, text: '<strong>Secure Context</strong> မဟုတ်ပါ။ ဤ website သည် လုံခြုံသော ပတ်ဝန်းကျင်တွင် မရှိပါ။ HTTPS ရှိသော site ကို အသုံးပြုပါ။' });
 
     // Cookies
     const cookiesEnabled = navigator.cookieEnabled;
     const cookieStatus = cookiesEnabled ? 'safe' : 'warning';
     checks.push({ status: cookieStatus });
-    html += createCheckItem('Cookies', cookiesEnabled ? 'ဖွင့်ထားပါသည် (Enabled)' : 'ပိတ်ထားပါသည် (Disabled)', cookieStatus);
+    html += createCheckItem('ကွတ်ကီးများ (Cookies)', cookiesEnabled ? 'ဖွင့်ထားသည် (Enabled)' : 'ပိတ်ထားသည် (Disabled)', cookieStatus);
     if (!cookiesEnabled) allSuggestions.push({ critical: false, text: '<strong>Cookies</strong> ပိတ်ထားပါသည်။ အချို့ website များ ကောင်းစွာ အလုပ်မလုပ်နိုင်ပါ။ လိုအပ်ပါက browser settings မှ cookies ကို ဖွင့်ပေးပါ။' });
 
     // Do Not Track
@@ -236,30 +236,30 @@ async function checkCategory2() {
     else if (dnt === '0') { dntValue = 'ပိတ်ထားပါသည် (Disabled)'; dntStatus = 'warning'; }
     else { dntValue = 'သတ်မှတ်ထားခြင်း မရှိပါ (Not Set)'; dntStatus = 'warning'; }
     checks.push({ status: dntStatus });
-    html += createCheckItem('Do Not Track (DNT)', dntValue, dntStatus);
+    html += createCheckItem('ခြေရာခံခြင်း တားဆီးမှု (DNT)', dntValue, dntStatus);
     if (dntStatus !== 'safe') allSuggestions.push({ critical: false, text: '<strong>Do Not Track</strong> ဖွင့်ထားခြင်း မရှိပါ။ Browser settings ထဲတွင် "Do Not Track" ကို enable လုပ်ခြင်းဖြင့် website များက သင့်ကို track လုပ်ခြင်းကို တားဆီးနိုင်ပါသည်။' });
 
     // JavaScript
-    html += createCheckItem('JavaScript', 'ဖွင့်ထားပါသည် (Enabled)', 'info');
+    html += createCheckItem('ဂျာဗားစခရစ် (JavaScript)', 'ဖွင့်ထားသည် (Enabled)', 'info');
     checks.push({ status: 'info' });
 
     // Third-party Cookies test (simplified)
     const tpcStatus = 'warning';
-    html += createCheckItem('Third-party Cookies', 'Browser ပေါ်မူတည်၍ ကွဲပြားနိုင်ပါသည်', tpcStatus);
+    html += createCheckItem('Third-party Cookies', 'Browser Settings ပေါ်မူတည်ပါသည်', tpcStatus);
     checks.push({ status: tpcStatus });
-    allSuggestions.push({ critical: false, text: '<strong>Third-party Cookies</strong> ကို block လုပ်ရန် အကြံပြုပါသည်။ Browser settings > Privacy > "Block third-party cookies" ကို ဖွင့်ပါ။' });
+    allSuggestions.push({ critical: false, text: '<strong>Third-party Cookies</strong> ကို ပိတ်ထားရန် (Block) အကြံပြုပါသည်။ Browser settings > Privacy > "Block third-party cookies" ကို ဖွင့်ပါ။' });
 
     // Ad Blocker Detection
     const adBlockStatus = detectAdBlocker();
     checks.push({ status: adBlockStatus ? 'safe' : 'warning' });
-    html += createCheckItem('Ad Blocker', adBlockStatus ? 'Ad Blocker တွေ့ရှိပါသည် ✓' : 'Ad Blocker မတွေ့ရှိပါ', adBlockStatus ? 'safe' : 'warning');
+    html += createCheckItem('ကြော်ငြာ တားဆီးမှု (Ad Blocker)', adBlockStatus ? 'Ad Blocker တွေ့ရှိသည် ✓' : 'Ad Blocker မတွေ့ရှိပါ', adBlockStatus ? 'safe' : 'warning');
     if (!adBlockStatus) allSuggestions.push({ critical: false, text: '<strong>Ad Blocker</strong> ထည့်သွင်းထားခြင်း မရှိပါ။ uBlock Origin သို့မဟုတ် အခြား ad blocker extension ထည့်သွင်းခြင်းဖြင့် malicious ads များမှ ကာကွယ်နိုင်ပါသည်။' });
 
     // Browser Fingerprinting Score
     const fpScore = calculateFingerprintScore();
     const fpStatus = fpScore.score < 30 ? 'safe' : fpScore.score < 60 ? 'warning' : 'danger';
     checks.push({ status: fpStatus });
-    html += createCheckItem('Browser Fingerprinting Score', `${fpScore.score}/100 (${fpScore.label})`, fpStatus);
+    html += createCheckItem('Browser Fingerprinting ရမှတ်', `${fpScore.score}/100 (${fpScore.label})`, fpStatus);
     if (fpStatus === 'danger') {
         allSuggestions.push({ critical: true, text: `<strong>Browser Fingerprinting</strong> score မြင့်ပါသည် (${fpScore.score}/100)။ သင့် browser သည် အလွန် unique ဖြစ်ပြီး website များက လွယ်ကူစွာ track လုပ်နိုင်ပါသည်။ Privacy-focused browser (Firefox, Brave) အသုံးပြုပါ သို့မဟုတ် Privacy Badger extension ထည့်သွင်းပါ။` });
     } else if (fpStatus === 'warning') {
@@ -285,20 +285,20 @@ async function checkCategory2() {
             let mediaPermStatus, mediaPermDisplay;
             if (cameraStatus.state === 'granted' || micStatus.state === 'granted') {
                 mediaPermStatus = 'warning';
-                mediaPermDisplay = 'ခွင့်ပြုထားပါသည် (Granted)';
+                mediaPermDisplay = 'ခွင့်ပြုထားသည် (Granted)';
                 allSuggestions.push({ critical: false, text: '<strong>Camera/Microphone</strong> permission ခွင့်ပြုထားပါသည်။ မလိုအပ်သော website များအတွက် browser settings > Site Settings > Camera/Microphone တွင် ပိတ်ထားပါ။' });
             } else if (cameraStatus.state === 'denied' && micStatus.state === 'denied') {
                 mediaPermStatus = 'safe';
-                mediaPermDisplay = 'ပိတ်ထားပါသည် (Denied) ✓';
+                mediaPermDisplay = 'ငြင်းပယ်ထားသည် (Denied) ✓';
             } else {
                 mediaPermStatus = 'safe';
-                mediaPermDisplay = 'မေးမည် (Prompt) ✓';
+                mediaPermDisplay = 'ခွင့်တောင်းမည် (Prompt) ✓';
             }
             
             checks.push({ status: mediaPermStatus });
-            html += createCheckItem('Camera/Microphone Permission', mediaPermDisplay, mediaPermStatus);
+            html += createCheckItem('ကင်မရာနှင့် မိုက်ခရိုဖုန်း ခွင့်ပြုချက်', mediaPermDisplay, mediaPermStatus);
         } catch {
-            html += createCheckItem('Camera/Microphone Permission', 'စစ်ဆေး၍ မရပါ', 'info');
+            html += createCheckItem('ကင်မရာနှင့် မိုက်ခရိုဖုန်း ခွင့်ပြုချက်', 'စစ်ဆေး၍ မရပါ', 'info');
             checks.push({ status: 'info' });
         }
     }
@@ -310,18 +310,18 @@ async function checkCategory2() {
         
         if (notifPerm === 'granted') {
             notifStatus = 'warning';
-            notifDisplay = 'ခွင့်ပြုထားပါသည် (Granted)';
+            notifDisplay = 'ခွင့်ပြုထားသည် (Granted)';
             allSuggestions.push({ critical: false, text: '<strong>Notification</strong> permission ခွင့်ပြုထားပါသည်။ spam notifications များ ရရှိနိုင်ပါသည်။ Browser settings > Site Settings > Notifications တွင် မလိုအပ်သော site များကို ပိတ်ပါ။' });
         } else if (notifPerm === 'denied') {
             notifStatus = 'safe';
-            notifDisplay = 'ပိတ်ထားပါသည် (Denied) ✓';
+            notifDisplay = 'ငြင်းပယ်ထားသည် (Denied) ✓';
         } else {
             notifStatus = 'safe';
-            notifDisplay = 'မေးမည် (Default) ✓';
+            notifDisplay = 'ခွင့်တောင်းမည် (Default) ✓';
         }
         
         checks.push({ status: notifStatus });
-        html += createCheckItem('Notification Permission', notifDisplay, notifStatus);
+        html += createCheckItem('အသိပေးချက် ခွင့်ပြုချက် (Notification)', notifDisplay, notifStatus);
     }
 
     document.getElementById('cat2Items').innerHTML = html;
@@ -526,8 +526,8 @@ function checkBrowserVulnerabilities(browserName, version) {
 
     return {
         safe: false,
-        message: `${browserName} ${version} - လုံခြုံရေး ပြဿနာ ${vulnCount > 0 ? vulnCount + ' ခု' : ''} ရှိပါသည်`,
-        suggestion: `Browser ကို အသစ်ဆုံး version (${browserData.minSafeVersion}+) သို့ update လုပ်ပါ။ လက်ရှိ version တွင် လုံခြုံရေး အားနည်းချက်များ ရှိနေပါသည်။`
+        message: `${browserName} ${version} - လုံခြုံရေး အားနည်းချက် ${vulnCount > 0 ? vulnCount + ' ခု' : ''} ရှိပါသည်`,
+        suggestion: `Browser ကို အသစ်ဆုံး Version (${browserData.minSafeVersion}+) သို့ Update လုပ်ပါ။ လက်ရှိ Version တွင် လုံခြုံရေး အားနည်းချက်များ ရှိနေပါသည်။`
     };
 }
 
@@ -552,10 +552,10 @@ function checkCategory3() {
     if (cores) {
         const coreStatus = cores >= 4 ? 'safe' : cores >= 2 ? 'warning' : 'danger';
         checks.push({ status: coreStatus });
-        html += createCheckItem('CPU Cores', `${cores} cores`, coreStatus);
+        html += createCheckItem('CPU Core အရေအတွက်', `${cores} Cores`, coreStatus);
         if (cores < 4) allSuggestions.push({ critical: false, text: `CPU cores ${cores} ခု ရှိပါသည်။ ခေတ်မီ browser များ အတွက် အနည်းဆုံး 4 cores ရှိသင့်ပါသည်။` });
     } else {
-        html += createCheckItem('CPU Cores', 'စစ်ဆေး၍ မရပါ', 'info');
+        html += createCheckItem('CPU Core အရေအတွက်', 'စစ်ဆေး၍ မရပါ', 'info');
         checks.push({ status: 'info' });
     }
 
@@ -564,10 +564,10 @@ function checkCategory3() {
     if (ram) {
         const ramStatus = ram >= 8 ? 'safe' : ram >= 4 ? 'warning' : 'danger';
         checks.push({ status: ramStatus });
-        html += createCheckItem('Device Memory (RAM)', `${ram} GB`, ramStatus);
+        html += createCheckItem('RAM မှတ်ဉာဏ် (Memory)', `${ram} GB`, ramStatus);
         if (ram < 4) allSuggestions.push({ critical: false, text: `RAM ${ram} GB ရှိပါသည်။ Browser tab များစွာ ဖွင့်ခြင်းကို ရှောင်ပါ။ အနည်းဆုံး 4 GB ရှိသင့်ပါသည်။` });
     } else {
-        html += createCheckItem('Device Memory (RAM)', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
+        html += createCheckItem('RAM မှတ်ဉာဏ် (Memory)', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
         checks.push({ status: 'info' });
     }
 
@@ -577,14 +577,14 @@ function checkCategory3() {
             const level = Math.round(battery.level * 100);
             const charging = battery.charging;
             const batStatus = charging || level > 20 ? 'safe' : level > 10 ? 'warning' : 'danger';
-            const batText = `${level}%${charging ? ' (အားသွင်းနေပါသည်)' : ''}`;
-            const batItem = createCheckItem('Battery', batText, batStatus);
+            const batText = `${level}%${charging ? ' (အားသွင်းနေသည်)' : ''}`;
+            const batItem = createCheckItem('Battery အခြေအနေ', batText, batStatus);
             // Append to existing items
             document.getElementById('cat3Items').innerHTML += batItem;
             if (level <= 20 && !charging) allSuggestions.push({ critical: false, text: `Battery ${level}% သာ ကျန်ပါသည်။ အားသွင်းပါ။ Battery နည်းသောအခါ browser performance ကျဆင်းနိုင်ပါသည်။` });
         }).catch(() => {});
     } else {
-        html += createCheckItem('Battery', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
+        html += createCheckItem('Battery အခြေအနေ', 'ဤ browser တွင် စစ်ဆေး၍ မရပါ', 'info');
         checks.push({ status: 'info' });
     }
 
@@ -604,7 +604,7 @@ function checkCategory3() {
 
     // WebGPU
     const hasGPU = !!navigator.gpu;
-    html += createCheckItem('WebGPU Support', hasGPU ? 'ရရှိနိုင်ပါသည် ✓' : 'မရရှိနိုင်ပါ', hasGPU ? 'safe' : 'info');
+    html += createCheckItem('WebGPU အသုံးပြုနိုင်မှု', hasGPU ? 'ရရှိနိုင်သည် ✓' : 'မရရှိနိုင်ပါ', hasGPU ? 'safe' : 'info');
     checks.push({ status: hasGPU ? 'safe' : 'info' });
 
     // Connection type (also in cat4 but performance-related here)
@@ -613,7 +613,7 @@ function checkCategory3() {
         const eff = conn.effectiveType;
         const connStatus = eff === '4g' ? 'safe' : eff === '3g' ? 'warning' : 'danger';
         checks.push({ status: connStatus });
-        html += createCheckItem('Effective Connection', eff.toUpperCase(), connStatus);
+        html += createCheckItem('အင်တာနက် အမြန်နှုန်း', eff.toUpperCase(), connStatus);
         if (eff !== '4g') allSuggestions.push({ critical: false, text: `Internet connection speed ${eff} ဖြစ်ပါသည်။ ပိုမြန်သော WiFi သို့ ပြောင်းပါ။` });
     }
 
@@ -639,7 +639,7 @@ async function checkCategory4() {
 
     // Timezone
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'မသိ';
-    html += createCheckItem('Timezone', tz, 'info');
+    html += createCheckItem('အချိန်ဇုန် (Timezone)', tz, 'info');
     checks.push({ status: 'info' });
 
     // Connection Type
@@ -647,7 +647,7 @@ async function checkCategory4() {
     if (conn) {
         const type = conn.type || 'Unknown';
         const downlink = conn.downlink ? `${conn.downlink} Mbps` : '';
-        html += createCheckItem('Connection Type', `${type}${downlink ? ' — ' + downlink : ''}`, 'info');
+        html += createCheckItem('ကွန်ရက် အမျိုးအစား', `${type}${downlink ? ' — ' + downlink : ''}`, 'info');
         checks.push({ status: 'info' });
     }
 
@@ -655,7 +655,7 @@ async function checkCategory4() {
     try {
         const resp = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(5000) });
         const data = await resp.json();
-        html += createCheckItem('Public IP Address', data.ip, 'info');
+        html += createCheckItem('Public IP လိပ်စာ', data.ip, 'info');
         checks.push({ status: 'info' });
         allSuggestions.push({ critical: false, text: `သင့် Public IP address (<strong>${data.ip}</strong>) ကို website များက မြင်နိုင်ပါသည်။ <strong>VPN</strong> အသုံးပြု၍ IP ကို ဖုံးကွယ်နိုင်ပါသည်။` });
     } catch {
@@ -663,15 +663,14 @@ async function checkCategory4() {
         checks.push({ status: 'warning' });
     }
 
-    // WebRTC Leak Check
     const webrtcLeak = await checkWebRTCLeak();
     if (webrtcLeak.leaked) {
         checks.push({ status: 'danger' });
-        html += createCheckItem('WebRTC IP Leak', `Local IP ပေါ်နေပါသည်: ${webrtcLeak.ip}`, 'danger');
+        html += createCheckItem('WebRTC IP Leak စစ်ဆေးမှု', `Local IP ပေါ်နေသည်: ${webrtcLeak.ip}`, 'danger');
         allSuggestions.push({ critical: true, text: `<strong>WebRTC</strong> မှ သင့် local IP address (${webrtcLeak.ip}) ပေါ်နေပါသည်။ VPN အသုံးပြုနေသော်လည်း IP ပေါ်နိုင်ပါသည်။ Browser extension "WebRTC Leak Shield" ထည့်သွင်းပါ သို့မဟုတ် browser settings တွင် WebRTC ကို disable လုပ်ပါ။` });
     } else {
         checks.push({ status: 'safe' });
-        html += createCheckItem('WebRTC IP Leak', 'WebRTC leak မတွေ့ရှိပါ ✓', 'safe');
+        html += createCheckItem('WebRTC IP Leak စစ်ဆေးမှု', 'WebRTC Leak မတွေ့ရှိပါ ✓', 'safe');
     }
 
     // Geolocation Permission
@@ -680,11 +679,11 @@ async function checkCategory4() {
             const geoStatus = await navigator.permissions.query({ name: 'geolocation' });
             const geoVal = geoStatus.state;
             let geoDisplay, geoSt;
-            if (geoVal === 'granted') { geoDisplay = 'ခွင့်ပြုထားပါသည် (Granted)'; geoSt = 'warning'; }
-            else if (geoVal === 'denied') { geoDisplay = 'ပိတ်ထားပါသည် (Denied)'; geoSt = 'safe'; }
-            else { geoDisplay = 'မေးမည် (Prompt)'; geoSt = 'safe'; }
+            if (geoVal === 'granted') { geoDisplay = 'ခွင့်ပြုထားသည် (Granted)'; geoSt = 'warning'; }
+            else if (geoVal === 'denied') { geoDisplay = 'ငြင်းပယ်ထားသည် (Denied)'; geoSt = 'safe'; }
+            else { geoDisplay = 'ခွင့်တောင်းမည် (Prompt)'; geoSt = 'safe'; }
             checks.push({ status: geoSt });
-            html += createCheckItem('Geolocation Permission', geoDisplay, geoSt);
+            html += createCheckItem('တည်နေရာ သိရှိခွင့် (Geolocation)', geoDisplay, geoSt);
             if (geoVal === 'granted') allSuggestions.push({ critical: false, text: '<strong>Geolocation</strong> permission ခွင့်ပြုထားပါသည်။ မလိုအပ်ပါက browser settings > Site Settings > Location တွင် ပိတ်ထားပါ။' });
         } catch {
             html += createCheckItem('Geolocation Permission', 'စစ်ဆေး၍ မရပါ', 'info');
