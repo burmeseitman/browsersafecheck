@@ -24,6 +24,8 @@ A single-page browser security insights tool that performs deep analysis of your
 - Do Not Track (DNT) header
 - Ad blocker detection
 - Third-party cookie awareness
+- **Browser Fingerprinting Score** — Measures browser uniqueness/trackability (0-100)
+- **Vulnerability Database Check** — Verifies browser version against known CVEs
 
 ### ⚡ Category 3: Hardware နှင့် စွမ်းဆောင်ရည် (Hardware & Performance)
 - CPU core count
@@ -47,6 +49,20 @@ A single-page browser security insights tool that performs deep analysis of your
 - Burmese-language safety verdict
 - Actionable suggestions for unsafe items
 - Color-coded status badges (✅ Safe / ⚠️ Warning / 🔴 Danger)
+
+### 🔍 Advanced Security Features
+
+#### Browser Fingerprinting Score
+
+- Calculates uniqueness based on 11+ browser attributes (UserAgent, Canvas, WebGL, Plugins, Audio, etc.)
+- Score interpretation: <30 = Low risk (Good), 30-60 = Medium risk, >60 = High risk (Dangerous)
+- Helps identify how easily websites can track you
+
+#### Vulnerability Database Check
+
+- Checks your browser version against known CVE vulnerabilities
+- Supports: Chrome, Edge, Firefox, Safari, Brave
+- Recommends updates if your version has security issues
 
 ## 🚀 Usage
 
