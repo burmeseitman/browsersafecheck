@@ -180,6 +180,27 @@ function checkCategory2() {
     html += createCheckItem('Ad Blocker', adBlockStatus ? 'Ad Blocker တွေ့ရှိပါသည် ✓' : 'Ad Blocker မတွေ့ရှိပါ', adBlockStatus ? 'safe' : 'warning');
     if (!adBlockStatus) allSuggestions.push({ critical: false, text: '<strong>Ad Blocker</strong> ထည့်သွင်းထားခြင်း မရှိပါ။ uBlock Origin သို့မဟုတ် အခြား ad blocker extension ထည့်သွင်းခြင်းဖြင့် malicious ads များမှ ကာကွယ်နိုင်ပါသည်။' });
 
+    // Browser Fingerprinting Score
+    const fpScore = calculateFingerprintScore();
+    const fpStatus = fpScore.score < 30 ? 'safe' : fpScore.score < 60 ? 'warning' : 'danger';
+    checks.push({ status: fpStatus });
+    html += createCheckItem('Browser Fingerprinting Score', `${fpScore.score}/100 (${fpScore.label})`, fpStatus);
+    if (fpStatus === 'danger') {
+        allSuggestions.push({ critical: true, text: `<strong>Browser Fingerprinting</strong> score မြင့်ပါသည် (${fpScore.score}/100)။ သင့် browser သည် အလွန် unique ဖြစ်ပြီး website များက လွယ်ကူစွာ track လုပ်နိုင်ပါသည်။ Privacy-focused browser (Firefox, Brave) အသုံးပြုပါ သို့မဟုတ် Privacy Badger extension ထည့်သွင်းပါ။` });
+    } else if (fpStatus === 'warning') {
+        allSuggestions.push({ critical: false, text: `<strong>Browser Fingerprinting</strong> score ${fpScore.score}/100 ဖြစ်ပါသည်။ Privacy ပိုကောင်းစေရန် browser extensions (Privacy Badger, uBlock Origin) ထည့်သွင်းပါ။` });
+    }
+
+    // Vulnerability Database Check
+    const browserInfo = detectBrowser();
+    const vulnCheck = checkBrowserVulnerabilities(browserInfo.name, browserInfo.version);
+    const vulnStatus = vulnCheck.safe ? 'safe' : 'danger';
+    checks.push({ status: vulnStatus });
+    html += createCheckItem('Browser Version လုံခြုံရေး', vulnCheck.message, vulnStatus);
+    if (!vulnCheck.safe) {
+        allSuggestions.push({ critical: true, text: `<strong>${browserInfo.name} ${browserInfo.version}</strong> တွင် လုံခြုံရေး ပြဿနာများ ရှိပါသည်။ ${vulnCheck.suggestion}` });
+    }
+
     document.getElementById('cat2Items').innerHTML = html;
     const catStatus = getCategoryStatus(checks);
     setBadge('cat2Badge', catStatus, badgeLabels[catStatus]);
@@ -187,6 +208,204 @@ function checkCategory2() {
     const total = checks.filter(c => c.status !== 'info').length;
     const safe = checks.filter(c => c.status === 'safe').length;
     categoryScores.cat2 = total > 0 ? Math.round((safe / total) * 100) : 100;
+}
+
+function detectAdBlocker() {
+    const testAd = document.createElement('div');
+    testAd.innerHTML = '&nbsp;';
+    testAd.className = 'adsbox ad-placement ad-banner';
+    testAd.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;';
+    document.body.appendChild(testAd);
+    const blocked = testAd.offsetHeight === 0 || testAd.clientHeight === 0;
+    document.body.removeChild(testAd);
+    return blocked;
+}
+
+// Browser Fingerprinting Score Calculation
+function calculateFingerprintScore() {
+    let entropy = 0;
+    const factors = [];
+
+    // User Agent uniqueness (high entropy)
+    const ua = navigator.userAgent;
+    if (ua) { entropy += 8; factors.push('UserAgent'); }
+
+    // Screen resolution
+    const screenSig = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+    entropy += 4.5;
+    factors.push('Screen');
+
+    // Timezone
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    entropy += 3.5;
+    factors.push('Timezone');
+
+    // Language
+    const langs = navigator.languages || [navigator.language];
+    entropy += 3;
+    factors.push('Language');
+
+    // Platform
+    const platform = navigator.platform || navigator.userAgentData?.platform;
+    if (platform) { entropy += 2; factors.push('Platform'); }
+
+    // Hardware Concurrency
+    if (navigator.hardwareConcurrency) {
+        entropy += 2.5;
+        factors.push('CPU');
+    }
+
+    // Device Memory
+    if (navigator.deviceMemory) {
+        entropy += 1.5;
+        factors.push('Memory');
+    }
+
+    // Canvas Fingerprinting (simplified check)
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Browser fingerprint test', 2, 2);
+            const canvasData = canvas.toDataURL();
+            if (canvasData) {
+                entropy += 5.5;
+                factors.push('Canvas');
+            }
+        }
+    } catch (e) {}
+
+    // WebGL Fingerprinting
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                if (vendor && renderer) {
+                    entropy += 4.5;
+                    factors.push('WebGL');
+                }
+            }
+        }
+    } catch (e) {}
+
+    // Plugins (deprecated but still tracked)
+    if (navigator.plugins && navigator.plugins.length > 0) {
+        entropy += 6;
+        factors.push('Plugins');
+    }
+
+    // Touch support
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (hasTouch) {
+        entropy += 1;
+        factors.push('Touch');
+    }
+
+    // Do Not Track
+    if (navigator.doNotTrack) {
+        entropy += 0.5;
+    }
+
+    // Cookie enabled
+    if (navigator.cookieEnabled) {
+        entropy += 0.3;
+    }
+
+    // Audio context fingerprinting
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            entropy += 3;
+            factors.push('Audio');
+        }
+    } catch (e) {}
+
+    // Calculate score (0-100, higher = more unique = worse for privacy)
+    // Max theoretical entropy ~50 bits
+    const score = Math.min(100, Math.round((entropy / 50) * 100));
+
+    let label;
+    if (score < 30) label = 'နည်း (ကောင်းမွန်)';
+    else if (score < 60) label = 'အလယ်အလတ်';
+    else label = 'မြင့် (အန္တရာယ်)';
+
+    return { score, entropy: entropy.toFixed(1), factors, label };
+}
+
+// Vulnerability Database Check
+function checkBrowserVulnerabilities(browserName, version) {
+    // Simplified vulnerability database (in production, this would query a real CVE database)
+    const vulnDB = {
+        'Google Chrome': {
+            minSafeVersion: 120,
+            vulnerabilities: {
+                119: ['CVE-2023-7024: High severity heap buffer overflow'],
+                118: ['CVE-2023-6345: Integer overflow in Skia'],
+                117: ['CVE-2023-5997: Use after free in Garbage Collection']
+            }
+        },
+        'Microsoft Edge': {
+            minSafeVersion: 120,
+            vulnerabilities: {
+                119: ['CVE-2023-7024: High severity heap buffer overflow'],
+                118: ['CVE-2023-6345: Integer overflow']
+            }
+        },
+        'Firefox': {
+            minSafeVersion: 121,
+            vulnerabilities: {
+                120: ['CVE-2023-6856: Heap-buffer-overflow in WebGL'],
+                119: ['CVE-2023-6204: Out-of-bound memory access'],
+                118: ['CVE-2023-5721: Queued up rendering could have allowed websites to clickjack']
+            }
+        },
+        'Safari': {
+            minSafeVersion: 17.2,
+            vulnerabilities: {
+                17.1: ['CVE-2023-42916: Out-of-bounds read'],
+                17.0: ['CVE-2023-42917: Memory corruption issue'],
+                16.6: ['CVE-2023-41993: WebKit arbitrary code execution']
+            }
+        },
+        'Brave': {
+            minSafeVersion: 1.60,
+            vulnerabilities: {}
+        }
+    };
+
+    const majorVersion = parseInt(version.split('.')[0]);
+    const browserData = vulnDB[browserName];
+
+    if (!browserData) {
+        return {
+            safe: true,
+            message: `${browserName} - Version စစ်ဆေး၍ မရပါ`,
+            suggestion: ''
+        };
+    }
+
+    if (majorVersion >= browserData.minSafeVersion) {
+        return {
+            safe: true,
+            message: `${browserName} ${version} - လုံခြုံပါသည် ✓`,
+            suggestion: ''
+        };
+    }
+
+    const vulns = browserData.vulnerabilities[majorVersion] || [];
+    const vulnCount = vulns.length;
+
+    return {
+        safe: false,
+        message: `${browserName} ${version} - လုံခြုံရေး ပြဿနာ ${vulnCount > 0 ? vulnCount + ' ခု' : ''} ရှိပါသည်`,
+        suggestion: `Browser ကို အသစ်ဆုံး version (${browserData.minSafeVersion}+) သို့ update လုပ်ပါ။ လက်ရှိ version တွင် လုံခြုံရေး အားနည်းချက်များ ရှိနေပါသည်။`
+    };
 }
 
 function detectAdBlocker() {
