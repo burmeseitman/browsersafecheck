@@ -68,6 +68,7 @@ A single-page browser security insights tool that performs deep analysis of your
 - Burmese-language safety verdict
 - Actionable suggestions for unsafe items
 - Color-coded status badges (✅ Safe / ⚠️ Warning / 🔴 Danger)
+- **100% Burmese (Myanmar) Localization** — Professional translation of all technical labels and suggestions.
 
 ### 🔍 Advanced Security Features
 
@@ -82,6 +83,13 @@ A single-page browser security insights tool that performs deep analysis of your
 - Checks your browser version against known CVE vulnerabilities
 - Supports: Chrome, Edge, Firefox, Safari, Brave
 - Recommends updates if your version has security issues
+
+#### Permission Access Monitoring
+
+- **Camera & Microphone** — Detects if your browser currently allows websites to access your hardware.
+- **Notifications** — Checks if sites can send you intrusive popups or spam.
+- **Geolocation** — Monitors whether your physical location can be tracked.
+- **Actionable Advice** — Provides direct instructions on how to revoke risky permissions in browser settings.
 
 ## 🚀 Usage
 
@@ -99,6 +107,22 @@ python3 -m http.server 8080
 Click **"စစ်ဆေးမည်"** (Scan) to start the security check.
 
 > **Note:** Some features (like IP detection) require an active internet connection. Running via HTTP server is recommended for all checks to work properly.
+
+## 🌐 Deployment
+
+### Deploy to Vercel
+
+This project is optimized for **Vercel** with a `vercel.json` and zero-config static hosting.
+
+1.  **Via Vercel CLI:**
+    ```bash
+    npm i -g vercel
+    vercel
+    ```
+2.  **Via GitHub:**
+    -   Push this repository to GitHub.
+    -   Connect the repository to Vercel.
+    -   Vercel will automatically detect the static files and deploy.
 
 ## 🔒 Privacy
 
